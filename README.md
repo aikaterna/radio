@@ -14,7 +14,7 @@ Todo:
 
 -play and nowplaying need the url provided to the commands. Later these should be an embed player with reactions (play) and a nowplaying command with a nice output with possible additional song lookup, but not generally possible for the genre of music I intend to play if this bot goes public. Both play and nowplaying should probably reference a storage item where the currently playing url is stored.
 
--needs a loop written to run nowplaying every 300 seconds and then place that information in the "Listening to..." status on the bot.
+-needs a loop written to run nowplaying every 300 seconds and then place that information in the "Listening to..." status on the bot. (sort of already done, an example in the code that's not called anywhere yet)
 
 
 URLs to test/use on the bot:
