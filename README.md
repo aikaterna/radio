@@ -1,5 +1,9 @@
 # radio
 
+Reqs:
+discord.py (async)
+icyparser (custom)
+
 Todo:
 
 -On play, check if player exists for that server, if so, stop player, then initialize next stream instead of requiring the user to disconnect the stream
