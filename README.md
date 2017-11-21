@@ -27,3 +27,5 @@ If you want more, there are tons of streams at somafm.com
 
 I tend to find most public streams don't stream in mp3 format and don't provide streaminfo like name and artist. I was using a custom title fetcher using mutagen and may still use that in the future, but icyparser is compact and in a package and I like that. However, on Windows, I needed to modify the icyparser.py that was in my python packages to get it to work properly. I'm including that in the root directory of the bot so you can overwrite it once you pip install icyparser.
 
+The issue with icyparser is that when you pip install icyparser on Windows, it uses an older version, and I wasn't successful in trying to get it installed directly from github. Use the version that's present on icyparser's github if anything: https://github.com/GijsTimmers/icyparser
+
