@@ -30,7 +30,7 @@ with open("config.json") as f:
             voice_channel = author.voice_channel
         if voice_connected(server):
             await bot.say(
-                "Already connected to a voice channel, use `ar!stop` to stop the radio.")
+                "Already connected to a voice channel, use `r!stop` to stop the radio.")
         else:
 
             Channel = ctx.message.channel
