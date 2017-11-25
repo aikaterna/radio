@@ -37,7 +37,7 @@ with open("config.json") as f:
         if isinstance(error, commands.NoPrivateMessage):
             await bot.send_message(ctx.message.author, 'No.')
         elif isinstance(error, commands.CommandInvokeError):
-            print('In {0.command.qualified_name}:'.format(ctx), file=sys.stderr)
+            print('Error in {0.command.qualified_name}:'.format(ctx), file=sys.stderr)
             traceback.print_tb(error.original.__traceback__)
             print('{0.__class__.__name__}: {0}'.format(error.original), file=sys.stderr)
 
@@ -136,35 +136,35 @@ with open("config.json") as f:
         await bot.say("Pong: {}ms".format(round((t2-t1)*1000)))
 
 #  Not implemented yet. Kinda halfway there, was going to fine tune it later and add counting of server players, ie self.players
-    async def status_loop():
-        playing = {}
-        for server in bot.servers:
-            if server.id not in self.players:
-                self.players[server.id] = None
-        playing_servers = 0
-            for server in playing:
-                playing_servers += 1
-            if playing_servers == 0:
-                pass
-            elif playing_servers == 1:
-                try:
-                    ip = IcyParser()
-                    ip.getIcyInformation(url)
-                    await asyncio.sleep(5)
-                    streamtitle = ip.icy_streamtitle
-                    if streamtitle is None:
-                        ip.stop()
-                        return
-                    else:
-                        streamtitle = str(streamtitle).replace(';StreamUrl=', '')
-                        streamtitle = str(streamtitle).replace("'", "")
-                        await bot.change_presence(game=discord.Game(name=streamtitle, type=2))
-                except:
-                    pass
-            else:
-                status = "music on {0} servers".format(playing_servers)
-                await bot.change_presence(game=discord.Game(name=status, type=0))
-        await asyncio.sleep(30)
+    # async def status_loop():
+        # playing = {}
+        # for server in bot.servers:
+            # if server.id not in self.players:
+                # self.players[server.id] = None
+        # playing_servers = 0
+            # for server in playing:
+                # playing_servers += 1
+            # if playing_servers == 0:
+                # pass
+            # elif playing_servers == 1:
+                # try:
+                    # ip = IcyParser()
+                    # ip.getIcyInformation(url)
+                    # await asyncio.sleep(5)
+                    # streamtitle = ip.icy_streamtitle
+                    # if streamtitle is None:
+                        # ip.stop()
+                        # return
+                    # else:
+                        # streamtitle = str(streamtitle).replace(';StreamUrl=', '')
+                        # streamtitle = str(streamtitle).replace("'", "")
+                        # await bot.change_presence(game=discord.Game(name=streamtitle, type=2))
+                # except:
+                    # pass
+            # else:
+                # status = "music on {0} servers".format(playing_servers)
+                # await bot.change_presence(game=discord.Game(name=status, type=0))
+        # await asyncio.sleep(30)
 
     # @bot.command()
     # async def status(url):
