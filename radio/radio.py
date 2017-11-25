@@ -1,15 +1,21 @@
+import asyncio
+import datetime
 import discord
 import json
+import os
+import sys
+import time
+import traceback
 from discord.ext import commands
-import asyncio
 from icyparser import IcyParser
 
 with open("config.json") as f:
     data = json.load(f)
     token = data["token"]
 
-    bot = commands.Bot(command_prefix='r!', description='''Radio''')
-
+    bot = commands.Bot(description='Radio', command_prefix='r!')
+	
+    owner_id = "154497072148643840"
 
     @bot.event
     async def on_ready():
@@ -18,8 +24,49 @@ with open("config.json") as f:
         print(bot.user.name)
         print(bot.user.id)
         print('------')
-        loop = bot.loop.create_task(status_loop())
+        print('Servers: ' + str(len(bot.servers)))
+        print('Users: ' + str(len(set(bot.get_all_members()))))
+        print('------')
+        print('Invite: ' + discord.utils.oauth_url(bot.user.id))
+        print('------')
+        print('Discord.py Version: {}'.format(discord.__version__))
+        print('------')
 
+    @bot.listen()
+    async def on_command_error(error, ctx):
+        if isinstance(error, commands.NoPrivateMessage):
+            await bot.send_message(ctx.message.author, 'No.')
+        elif isinstance(error, commands.CommandInvokeError):
+            print('In {0.command.qualified_name}:'.format(ctx), file=sys.stderr)
+            traceback.print_tb(error.original.__traceback__)
+            print('{0.__class__.__name__}: {0}'.format(error.original), file=sys.stderr)
+
+    @bot.listen()
+    async def on_message(message: discord.Message):
+        if not message.channel.is_private or message.channel.user.id == owner_id:
+            return
+
+        # if message.content == "?ignoredcommand":
+            # pass
+
+        embed = discord.Embed()
+        if message.author == bot.user:
+            embed.title = 'Sent PM to {}#{} ({}).'.format(message.channel.user.name, message.channel.user.discriminator, message.channel.user.id)
+        else:
+            embed.set_author(name=message.author, icon_url=message.author.avatar_url or message.author.default_avatar_url)
+            embed.title = '{} messaged me:'.format(message.channel.user.id)
+        embed.description = message.content
+        embed.timestamp = message.timestamp
+
+        owner = discord.utils.get(bot.get_all_members(), id=owner_id)
+        await bot.send_message(owner, embed=embed)
+
+    @bot.command(pass_context=True)
+    async def pm(ctx, user: discord.User, *, content: str):
+        """PMs a person, owner only."""
+        if ctx.message.author.id == owner_id:
+            await bot.send_message(user, content)
+            await bot.send_message(ctx.message.channel, "Message sent.")
 
     @bot.command(pass_context=True, no_pm=True)
     async def play(ctx, url, voice_channel: discord.Channel = None):
@@ -32,8 +79,8 @@ with open("config.json") as f:
             await bot.say(
                 "Already connected to a voice channel, use `r!stop` to stop the radio.")
         else:
-
             Channel = ctx.message.channel
+            # await bot.say("Connecting to the server!")
             await bot.say("Fetching stream...")
             voice = await bot.join_voice_channel(voice_channel)
             player = voice.create_ffmpeg_player(url)
@@ -60,6 +107,33 @@ with open("config.json") as f:
         author = ctx.message.author
         await _disconnect_voice_client(server)
         await bot.say("Stopping playback...")
+
+    @bot.command(aliases=["nowplaying", "song"], no_pm=True)
+    async def np(url):
+        """Now playing."""
+        ip = IcyParser()
+        await bot.say("Fetching Song Information...")
+        try:
+            ip.getIcyInformation(url)
+        except Exception as error:
+            bot.say(error)
+            return
+        await asyncio.sleep(5)
+        streamtitle = ip.icy_streamtitle
+        streamtitle = str(streamtitle).replace(';StreamUrl=', '')
+        streamtitle = str(streamtitle).replace("'", "")
+        await bot.change_presence(game=discord.Game(name=streamtitle, type=2))
+        await bot.say("Now Playing: {}".format(streamtitle))
+        ip.stop()
+
+    @bot.command(pass_context=True, no_pm=True)
+    async def ping(ctx):
+        """Pong."""
+        channel = ctx.message.channel
+        t1 = time.perf_counter()
+        await bot.send_typing(channel)
+        t2 = time.perf_counter()
+        await bot.say("Pong: {}ms".format(round((t2-t1)*1000)))
 
 #  Not implemented yet. Kinda halfway there, was going to fine tune it later and add counting of server players, ie self.players
     async def status_loop():
@@ -92,23 +166,18 @@ with open("config.json") as f:
                 await bot.change_presence(game=discord.Game(name=status, type=0))
         await asyncio.sleep(30)
 
-    @bot.command()
-    async def nowplaying(url):
-        """Get the playing song!"""
-        ip = IcyParser()
-        await bot.say("Fetching Song Information...")
-        try:
-            ip.getIcyInformation(url)
-        except Exception as error:
-            bot.say(error)
-            return
-        await asyncio.sleep(5)
-        streamtitle = ip.icy_streamtitle
-        streamtitle = str(streamtitle).replace(';StreamUrl=', '')
-        streamtitle = str(streamtitle).replace("'", "")
-        await bot.say("Now Playing: {}".format(streamtitle))
-        ip.stop()
-
+    # @bot.command()
+    # async def status(url):
+        # ip = IcyParser()   
+        # ip.getIcyInformation(url)
+        # await asyncio.sleep(5)
+        # game = ip.icy_streamtitle
+        # game = game.replace("';StreamUrl='", "")
+        # if game is None:
+            # return
+        # else:
+            # await bot.change_presence(game=game)
+        # ip.stop()
 
     def voice_client(server):
         return bot.voice_client_in(server)
@@ -126,13 +195,12 @@ with open("config.json") as f:
 
         await vc.disconnect()
 
-    # @bot.command(pass_context=True, no_pm=True)
-    # async def shutdown(ctx):
+    # @bot.command(no_pm=True)
+    # async def shutdown():
         # """Stops playback."""
         # await _disconnect_voice_client(server)
         # await bot.say("Shutting down...")
-        # loop.cancel()
-        # await bot.shutdown()      #  lol there is no bot.shutdown wtf
+        # await bot.shutdown()
 
 
     bot.run(token)
