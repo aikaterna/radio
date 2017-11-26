@@ -14,13 +14,16 @@ with open("config.json") as f:
     data = json.load(f)
     token = data["token"]
 
-    bot = commands.Bot(description='Radio', command_prefix='r!')
+    bot = commands.Bot(description=' ', command_prefix='r!')
 
     owner_id = "154497072148643840"
 
+    startup_cogs = (
+        'cogs.help',
+    )
+
     @bot.event
     async def on_ready():
-        dpy_ver = discord.__version__
         print('')
         print('     :::::::::      :::     ::::::::: ::::::::::: ::::::::  ')
         print('     :+:    :+:   :+: :+:   :+:    :+:    :+:    :+:    :+: ')
@@ -41,6 +44,12 @@ with open("config.json") as f:
         print('                Servers: ' + str(len(bot.servers)) + '          Users: ' + str(len(set(bot.get_all_members()))))
         print('')
 
+        for cog in startup_cogs:
+            try:
+                bot.load_extension(cog)
+            except Exception as e:
+                print('Failed to load {cog}.')
+
     @bot.listen()
     async def on_command_error(error, ctx):
         if isinstance(error, commands.NoPrivateMessage):
@@ -50,13 +59,13 @@ with open("config.json") as f:
             traceback.print_tb(error.original.__traceback__)
             print('{0.__class__.__name__}: {0}'.format(error.original), file=sys.stderr)
 
-    @bot.listen()
-    async def on_message(message):
-        author = message.author
-        colour = ''.join([choice('0123456789ABCDEF') for x in range(6)])
-        if author.id == bot.user.id:
-            embed=discord.Embed(description=message.content, colour=int(colour, 16))
-            await bot.edit_message(message, new_content=" ", embed=embed)
+    # @bot.listen()
+    # async def on_message(message):
+        # author = message.author
+        # colour = ''.join([choice('0123456789ABCDEF') for x in range(6)])
+        # if author.id == bot.user.id:
+            # embed=discord.Embed(description=message.content, colour=int(colour, 16))
+            # await bot.edit_message(message, new_content=" ", embed=embed)
 
     @bot.listen()
     async def on_message(message: discord.Message):
@@ -169,7 +178,7 @@ with open("config.json") as f:
 
     @bot.command(pass_context=True)
     async def sharedservers(ctx, user : discord.Member = None):
-        """[Owner] Shows shared server info. Defaults to author."""
+        """[Owner] Shows shared server info."""
         author = ctx.message.author
         server = ctx.message.server
         if ctx.message.author.id == owner_id:
