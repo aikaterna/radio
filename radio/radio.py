@@ -39,7 +39,7 @@ with open("config.json") as f:
         print('            ║          Discord.py Version          ║')
         print('            ║               ' + discord.__version__ + '                ║')
         print('            ╚══════════════════════════════════════╝')
-        print('	                    Invite:')
+        print('                        Invite:')
         print(discord.utils.oauth_url(bot.user.id))
         print('                Servers: ' + str(len(bot.servers)) + '          Users: ' + str(len(set(bot.get_all_members()))))
         print('')
@@ -131,6 +131,10 @@ with open("config.json") as f:
         for i in range(4):
             await bot.add_reaction(message, expected[i])
         react = await bot.wait_for_reaction(message=message, user=ctx.message.author, timeout=timeout, emoji=expected)
+        if react is None:
+            await bot.delete_message(message)
+            await bot.say("Try again later.")
+            return
         reacts = {v: k for k, v in buttons.items()}
         react = reacts[react.reaction.emoji]
         if react == "soma1":
@@ -156,7 +160,7 @@ with open("config.json") as f:
         author = ctx.message.author
         if url is None:
             await bot.say('What url?')
-            urlm = await bot.wait_for_message(timeout=35, author=author)
+            urlm = await bot.wait_for_message(timeout=30, author=author)
             if urlm is None:
                 await bot.say("Provide a valid URL next time.")
                 return
@@ -206,7 +210,7 @@ with open("config.json") as f:
         author = ctx.message.author
         if url is None:
             await bot.say('What url?')
-            urlm = await bot.wait_for_message(timeout=35, author=author)
+            urlm = await bot.wait_for_message(timeout=30, author=author)
             if urlm is None:
                 await bot.say("Provide a valid URL next time.")
                 return
