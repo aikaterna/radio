@@ -198,10 +198,11 @@ with open("config.json") as f:
     async def shutdown(ctx):
         """[Owner] Shutdown the bot."""
         server = ctx.message.server
-        await _disconnect_voice_client(server)
-        await bot.say("Shutting down...")
-        await bot.logout()
-        await bot.close()
+        if ctx.message.author.id == owner_id:
+            await _disconnect_voice_client(server)
+            await bot.say("Shutting down...")
+            await bot.logout()
+            await bot.close()
 
 
     bot.run(token)
