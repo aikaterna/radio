@@ -105,6 +105,8 @@ async def play(ctx, message: discord.Message=None, timeout: int=30):
         # "soma10": "🔟"
     # }
 
+    await bot.delete_message(ctx.message)
+
     buttons = {
         "soma1": "1⃣",
         "soma2": "2⃣",
@@ -117,7 +119,7 @@ async def play(ctx, message: discord.Message=None, timeout: int=30):
     colour = ''.join([choice('0123456789ABCDEF') for x in range(6)])
     embed = discord.Embed(colour=int(colour, 16))
 
-    embed.add_field(name="Radio Stations", value="1. **Groove Salad** - A nicely chilled plate of ambient, downtempo beats and grooves.\n2. **The Trip** - Progressive house and trance. Tip top tunes.\n3. **DEFCON** - The DEF CON 25 Channel.\n4. **Spacestation** - Tune in, turn on, space out. Spaced-out ambient and mid-tempo electronica.", inline=False)
+    embed.add_field(name="Radio Stations", value="1. **Groove Salad** - A nicely chilled plate of ambient, downtempo beats and grooves.\n2. **The Trip** - Progressive house and trance. Tip top tunes.\n3. **DEFCON** - The DEF CON 25 Channel.\n4. **Spacestation** - Spaced-out ambient and mid-tempo electronica.", inline=False)
     embed.set_footer(text="Powered by SomaFM.")
 
     message = await bot.send_message(ctx.message.channel, embed=embed)
@@ -164,19 +166,20 @@ async def playsong(ctx, url=None, voice_channel: discord.Channel=None):
     if voice_connected(server):
         await _disconnect_voice_client(server)
         Channel = ctx.message.channel
-        await bot.say("Fetching stream...")
+        fetch = await bot.say("Fetching stream...")
         voice = await bot.join_voice_channel(voice_channel)
         player = voice.create_ffmpeg_player(url)
         player.start()
     else:
         Channel = ctx.message.channel
-        await bot.say("Fetching stream...")
+        fetch = await bot.say("Fetching stream...")
         voice = await bot.join_voice_channel(voice_channel)
         player = voice.create_ffmpeg_player(url)
         player.start()
     ip = IcyParser()
     ip.getIcyInformation(url)
     await asyncio.sleep(5)
+    await bot.delete_message(fetch)
     streamtitle = ip.icy_streamtitle
     if streamtitle is None:
         ip.stop()
@@ -222,6 +225,31 @@ async def np(ctx, url=None):
     await bot.change_presence(game=discord.Game(name=streamtitle, type=2))
     await bot.say("Now Playing: {}".format(streamtitle))
     ip.stop()
+
+@bot.command(pass_context=True, no_pm=True)
+async def info(ctx, message: discord.Message=None, timeout: int=30):
+    """Radio info."""
+    await bot.delete_message(ctx.message)
+    buttons = {"delete": "❌"}
+
+    expected = ["❌"]
+
+    colour = ''.join([choice('0123456789ABCDEF') for x in range(6)])
+    embed = discord.Embed(colour=int(colour, 16))
+
+    embed.add_field(name="Radio Info", value="**Radio** is a discord.py bot, built to play icecast streams.\nFuture plans: YouTube live streams.\nAuthor: aikaterna#1393\nHelp command modified from [Thane's help for Red v2/v3](https://github.com/SirThane/Thane-Cogs).\nPowered by [SomaFM](http://www.somafm.com/) - over 30 unique channels of listener-supported, commercial-free, underground/alternative radio.", inline=False)
+
+    message = await bot.send_message(ctx.message.channel, embed=embed)
+    for i in range(1):
+        await bot.add_reaction(message, expected[i])
+    react = await bot.wait_for_reaction(message=message, user=ctx.message.author, timeout=timeout, emoji=expected)
+    if react is None:
+        await bot.delete_message(message)
+        return
+    reacts = {v: k for k, v in buttons.items()}
+    react = reacts[react.reaction.emoji]
+    if react == "delete":
+        await bot.delete_message(message)
 
 @bot.command(pass_context=True, no_pm=True)
 async def ping(ctx):
