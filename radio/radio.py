@@ -39,7 +39,7 @@ with open("config.json") as f:
         print('            ║          Discord.py Version          ║')
         print('            ║               ' + discord.__version__ + '                ║')
         print('            ╚══════════════════════════════════════╝')
-        print('                        Invite:')
+        print('                            Invite:')
         print(discord.utils.oauth_url(bot.user.id))
         print('                Servers: ' + str(len(bot.servers)) + '          Users: ' + str(len(set(bot.get_all_members()))))
         print('')
