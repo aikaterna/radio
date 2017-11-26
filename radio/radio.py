@@ -77,10 +77,18 @@ with open("config.json") as f:
             await bot.send_message(ctx.message.channel, "Message sent.")
 
     @bot.command(pass_context=True, no_pm=True)
-    async def play(ctx, url, voice_channel: discord.Channel = None):
+    async def play(ctx, url=None, voice_channel: discord.Channel=None):
         """Play an icecast stream."""
         server = ctx.message.server
         author = ctx.message.author
+        if url is None:
+            await bot.say('What url?')
+            urlm = await bot.wait_for_message(timeout=35, author=author)
+            if urlm is None:
+                await bot.say("Provide a valid URL next time.")
+                return
+            url=urlm.content
+
         if voice_channel is None:
             voice_channel = author.voice_channel
         if voice_connected(server):
@@ -115,9 +123,17 @@ with open("config.json") as f:
         await _disconnect_voice_client(server)
         await bot.say("Stopping playback...")
 
-    @bot.command(aliases=["nowplaying", "song"], no_pm=True)
-    async def np(url):
+    @bot.command(pass_context=True, aliases=["nowplaying", "song"], no_pm=True)
+    async def np(ctx, url=None):
         """Now playing."""
+        author = ctx.message.author
+        if url is None:
+            await bot.say('What url?')
+            urlm = await bot.wait_for_message(timeout=35, author=author)
+            if urlm is None:
+                await bot.say("Provide a valid URL next time.")
+                return
+            url=urlm.content
         ip = IcyParser()
         await bot.say("Fetching Song Information...")
         try:
