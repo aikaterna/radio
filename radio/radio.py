@@ -48,7 +48,7 @@ with open("config.json") as f:
             try:
                 bot.load_extension(cog)
             except Exception as e:
-                print('Failed to load {cog}.')
+                print('Failed to load: {}'.format(cog))
 
     @bot.listen()
     async def on_command_error(error, ctx):
