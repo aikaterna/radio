@@ -8,6 +8,7 @@ import time
 import traceback
 from discord.ext import commands
 from icyparser import IcyParser
+from random import choice
 
 with open("config.json") as f:
     data = json.load(f)
@@ -48,6 +49,14 @@ with open("config.json") as f:
             print('Error in {0.command.qualified_name}:'.format(ctx), file=sys.stderr)
             traceback.print_tb(error.original.__traceback__)
             print('{0.__class__.__name__}: {0}'.format(error.original), file=sys.stderr)
+
+    @bot.listen()
+    async def on_message(message):
+        author = message.author
+        colour = ''.join([choice('0123456789ABCDEF') for x in range(6)])
+        if author.id == bot.user.id:
+            embed=discord.Embed(description=message.content, colour=int(colour, 16))
+            await bot.edit_message(message, new_content=" ", embed=embed)
 
     @bot.listen()
     async def on_message(message: discord.Message):
