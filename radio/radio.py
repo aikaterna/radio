@@ -19,18 +19,26 @@ with open("config.json") as f:
 
     @bot.event
     async def on_ready():
-        print('------')
-        print('Logged in as')
-        print(bot.user.name)
-        print(bot.user.id)
-        print('------')
-        print('Servers: ' + str(len(bot.servers)))
-        print('Users: ' + str(len(set(bot.get_all_members()))))
-        print('------')
-        print('Invite: ' + discord.utils.oauth_url(bot.user.id))
-        print('------')
-        print('Discord.py Version: {}'.format(discord.__version__))
-        print('------')
+        dpy_ver = discord.__version__
+        print('')
+        print('     :::::::::      :::     ::::::::: ::::::::::: ::::::::  ')
+        print('     :+:    :+:   :+: :+:   :+:    :+:    :+:    :+:    :+: ')
+        print('     +:+    +:+  +:+   +:+  +:+    +:+    +:+    +:+    +:+ ')
+        print('     +#++:++#:  +#++:++#++: +#+    +:+    +#+    +#+    +:+ ')
+        print('     +#+    +#+ +#+     +#+ +#+    +#+    +#+    +#+    +#+')
+        print('     #+#    #+# #+#     #+# #+#    #+#    #+#    #+#    #+# ')
+        print('     ###    ### ###     ### ######### ########### ######## ')
+        print(' ')
+        print('            ╔═══ Logged in: ══╦═════ User ID: ═════╗')
+        print('            ║       OK        ║ ' + bot.user.id + ' ║')
+        print('            ╠═════════════════╩════════════════════╣')
+        print('            ║          Discord.py Version          ║')
+        print('            ║               ' + discord.__version__ + '                ║')
+        print('            ╚══════════════════════════════════════╝')
+        print('	                    Invite:')
+        print(discord.utils.oauth_url(bot.user.id))
+        print('                Servers: ' + str(len(bot.servers)) + '          Users: ' + str(len(set(bot.get_all_members()))))
+        print('')
 
     @bot.listen()
     async def on_command_error(error, ctx):
@@ -133,6 +141,24 @@ with open("config.json") as f:
         await bot.send_typing(channel)
         t2 = time.perf_counter()
         await bot.say("Pong: {}ms".format(round((t2-t1)*1000)))
+
+    @bot.command(pass_context=True)
+    async def sharedservers(ctx, user : discord.Member = None):
+        """[Owner] Shows shared server info. Defaults to author."""
+        author = ctx.message.author
+        server = ctx.message.server
+        if ctx.message.author.id == owner_id:
+            if not user:
+                user = author
+            seen = len(set([member.server.name for member in bot.get_all_members() if member.name == user.name]))
+            sharedservers = str(set([member.server.name for member in bot.get_all_members() if member.name == user.name]))
+            for shared in sharedservers:
+                shared = "".strip("'").join(sharedservers).strip("'")
+                shared = shared.strip("{").strip("}")
+            data = "```ini\n"
+            data += "[Servers]:     {} shared\n".format(seen)
+            data += "[In Servers]:  {}```".format(shared)
+            await bot.say(data)
 
 #  Not implemented yet. Kinda halfway there, was going to fine tune it later and add counting of server players, ie self.players
     # async def status_loop():
