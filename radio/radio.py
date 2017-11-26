@@ -14,7 +14,7 @@ with open("config.json") as f:
     token = data["token"]
 
     bot = commands.Bot(description='Radio', command_prefix='r!')
-	
+
     owner_id = "154497072148643840"
 
     @bot.event
@@ -46,7 +46,7 @@ with open("config.json") as f:
         if not message.channel.is_private or message.channel.user.id == owner_id:
             return
 
-        # if message.content == "?ignoredcommand":
+        # if message.content == "?ignoredpmcommand":
             # pass
 
         embed = discord.Embed()
@@ -63,7 +63,7 @@ with open("config.json") as f:
 
     @bot.command(pass_context=True)
     async def pm(ctx, user: discord.User, *, content: str):
-        """PMs a person, owner only."""
+        """[Owner] PMs a person."""
         if ctx.message.author.id == owner_id:
             await bot.send_message(user, content)
             await bot.send_message(ctx.message.channel, "Message sent.")
@@ -80,7 +80,6 @@ with open("config.json") as f:
                 "Already connected to a voice channel, use `r!stop` to stop the radio.")
         else:
             Channel = ctx.message.channel
-            # await bot.say("Connecting to the server!")
             await bot.say("Fetching stream...")
             voice = await bot.join_voice_channel(voice_channel)
             player = voice.create_ffmpeg_player(url)
@@ -195,12 +194,14 @@ with open("config.json") as f:
 
         await vc.disconnect()
 
-    # @bot.command(no_pm=True)
-    # async def shutdown():
-        # """Stops playback."""
-        # await _disconnect_voice_client(server)
-        # await bot.say("Shutting down...")
-        # await bot.shutdown()
+    @bot.command(pass_context=True, no_pm=True)
+    async def shutdown(ctx):
+        """[Owner] Shutdown the bot."""
+        server = ctx.message.server
+        await _disconnect_voice_client(server)
+        await bot.say("Shutting down...")
+        await bot.logout()
+        await bot.close()
 
 
     bot.run(token)
