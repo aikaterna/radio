@@ -18,10 +18,10 @@ startup_cogs = (
     'cogs.help',
 )
 
-
 with open("config.json") as f:
     data = json.load(f)
     token = data["token"]
+
 
 @bot.event
 async def on_ready():
@@ -51,6 +51,7 @@ async def on_ready():
         except Exception as e:
             print('Failed to load: {}'.format(cog))
 
+
 @bot.listen()
 async def on_command_error(error, ctx):
     if isinstance(error, commands.NoPrivateMessage):
@@ -59,6 +60,7 @@ async def on_command_error(error, ctx):
         print('Error in {0.command.qualified_name}:'.format(ctx), file=sys.stderr)
         traceback.print_tb(error.original.__traceback__)
         print('{0.__class__.__name__}: {0}'.format(error.original), file=sys.stderr)
+
 
 @bot.listen()
 async def on_message(message: discord.Message):
@@ -80,12 +82,14 @@ async def on_message(message: discord.Message):
     owner = discord.utils.get(bot.get_all_members(), id=owner_id)
     await bot.send_message(owner, embed=embed)
 
+
 @bot.command(pass_context=True)
 async def pm(ctx, user: discord.User, *, content: str):
     """[Owner] PMs a person."""
     if ctx.message.author.id == owner_id:
         await bot.send_message(user, content)
         await bot.send_message(ctx.message.channel, "Message sent.")
+
 
 @bot.command(pass_context=True, no_pm=True)
 async def play(ctx, message: discord.Message=None, timeout: int=30):
@@ -149,6 +153,7 @@ async def play(ctx, message: discord.Message=None, timeout: int=30):
         await bot.delete_message(message)
         await playsong(ctx=ctx, url=url, voice_channel=None)
 
+
 async def playsong(ctx, url=None, voice_channel: discord.Channel=None):
     """Play an icecast stream."""
     server = ctx.message.server
@@ -159,7 +164,7 @@ async def playsong(ctx, url=None, voice_channel: discord.Channel=None):
         if urlm is None:
             await bot.say("Provide a valid URL next time.")
             return
-        url=urlm.content
+        url = urlm.content
 
     if voice_channel is None:
         voice_channel = author.voice_channel
@@ -192,6 +197,7 @@ async def playsong(ctx, url=None, voice_channel: discord.Channel=None):
         await bot.change_presence(game=discord.Game(name=streamtitle, type=2))
     ip.stop()
 
+
 @bot.command(pass_context=True, no_pm=True)
 async def stop(ctx):
     """Stops playback."""
@@ -199,6 +205,7 @@ async def stop(ctx):
     author = ctx.message.author
     await _disconnect_voice_client(server)
     await bot.say("Stopping playback...")
+
 
 @bot.command(pass_context=True, aliases=["nowplaying", "song"], no_pm=True)
 async def np(ctx, url=None):
@@ -210,7 +217,7 @@ async def np(ctx, url=None):
         if urlm is None:
             await bot.say("Provide a valid URL next time.")
             return
-        url=urlm.content
+        url = urlm.content
     ip = IcyParser()
     await bot.say("Fetching Song Information...")
     try:
@@ -225,6 +232,7 @@ async def np(ctx, url=None):
     await bot.change_presence(game=discord.Game(name=streamtitle, type=2))
     await bot.say("Now Playing: {}".format(streamtitle))
     ip.stop()
+
 
 @bot.command(pass_context=True, no_pm=True)
 async def info(ctx, message: discord.Message=None, timeout: int=30):
@@ -251,6 +259,7 @@ async def info(ctx, message: discord.Message=None, timeout: int=30):
     if react == "delete":
         await bot.delete_message(message)
 
+
 @bot.command(pass_context=True, no_pm=True)
 async def ping(ctx):
     """Pong."""
@@ -260,8 +269,9 @@ async def ping(ctx):
     t2 = time.perf_counter()
     await bot.say("Pong: {}ms".format(round((t2-t1)*1000)))
 
+
 @bot.command(pass_context=True)
-async def sharedservers(ctx, user : discord.Member = None):
+async def sharedservers(ctx, user: discord.Member=None):
     """[Owner] Shows shared server info."""
     author = ctx.message.author
     server = ctx.message.server
@@ -277,6 +287,7 @@ async def sharedservers(ctx, user : discord.Member = None):
         data += "[Servers]:     {} shared\n".format(seen)
         data += "[In Servers]:  {}```".format(shared)
         await bot.say(data)
+
 
 #  Not implemented yet. Kinda halfway there, was going to fine tune it later and add counting of server players, ie self.players
 # async def status_loop():
@@ -312,10 +323,12 @@ async def sharedservers(ctx, user : discord.Member = None):
 def voice_client(server):
     return bot.voice_client_in(server)
 
+
 def voice_connected(server):
     if bot.is_voice_connected(server):
         return True
     return False
+
 
 async def _disconnect_voice_client(server):
     if not voice_connected(server):
@@ -324,6 +337,7 @@ async def _disconnect_voice_client(server):
     vc = voice_client(server)
 
     await vc.disconnect()
+
 
 @bot.command(pass_context=True, no_pm=True)
 async def shutdown(ctx):
