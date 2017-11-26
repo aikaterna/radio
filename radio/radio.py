@@ -29,7 +29,7 @@ with open("config.json") as f:
         print('     :+:    :+:   :+: :+:   :+:    :+:    :+:    :+:    :+: ')
         print('     +:+    +:+  +:+   +:+  +:+    +:+    +:+    +:+    +:+ ')
         print('     +#++:++#:  +#++:++#++: +#+    +:+    +#+    +#+    +:+ ')
-        print('     +#+    +#+ +#+     +#+ +#+    +#+    +#+    +#+    +#+')
+        print('     +#+    +#+ +#+     +#+ +#+    +#+    +#+    +#+    +#+ ')
         print('     #+#    #+# #+#     #+# #+#    #+#    #+#    #+#    #+# ')
         print('     ###    ### ###     ### ######### ########### ######## ')
         print(' ')
@@ -95,7 +95,62 @@ with open("config.json") as f:
             await bot.send_message(ctx.message.channel, "Message sent.")
 
     @bot.command(pass_context=True, no_pm=True)
-    async def play(ctx, url=None, voice_channel: discord.Channel=None):
+    async def play(ctx, message: discord.Message=None, timeout: int=30):
+
+        # expected = ["1⃣", "2⃣", "3⃣", "4⃣", "5⃣", "6⃣", "7⃣", "8⃣", "9⃣", "🔟"]
+
+        # buttons = {
+            # "soma1": "1⃣",
+            # "soma2": "2⃣",
+            # "soma3": "3⃣",
+            # "soma4": "4⃣",
+            # "soma5": "5⃣",
+            # "soma6": "6⃣",
+            # "soma7": "7⃣",
+            # "soma8": "8⃣",
+            # "soma9": "9⃣",
+            # "soma10": "🔟"
+        # }
+
+        buttons = {
+            "soma1": "1⃣",
+            "soma2": "2⃣",
+            "soma3": "3⃣",
+            "soma4": "4⃣"
+        }
+
+        expected = ["1⃣", "2⃣", "3⃣", "4⃣"]
+
+        colour = ''.join([choice('0123456789ABCDEF') for x in range(6)])
+        embed = discord.Embed(colour=int(colour, 16))
+
+        embed.add_field(name="Radio Stations", value="1. **Groove Salad** - A nicely chilled plate of ambient, downtempo beats and grooves.\n2. **The Trip** - Progressive house and trance. Tip top tunes.\n3. **DEFCON** - The DEF CON 25 Channel.\n4. **Spacestation** - Tune in, turn on, space out. Spaced-out ambient and mid-tempo electronica.", inline=False)
+        embed.set_footer(text="Powered by SomaFM.")
+
+        message = await bot.send_message(ctx.message.channel, embed=embed)
+        for i in range(4):
+            await bot.add_reaction(message, expected[i])
+        react = await bot.wait_for_reaction(message=message, user=ctx.message.author, timeout=timeout, emoji=expected)
+        reacts = {v: k for k, v in buttons.items()}
+        react = reacts[react.reaction.emoji]
+        if react == "soma1":
+            url = "http://ice1.somafm.com/groovesalad-128-mp3"
+            await bot.delete_message(message)
+            await playsong(ctx=ctx, url=url, voice_channel=None)
+        elif react == "soma2":
+            url = "http://ice1.somafm.com/thetrip-128-mp3"
+            await bot.delete_message(message)
+            await playsong(ctx=ctx, url=url, voice_channel=None)
+        elif react == "soma3":
+            url = "http://ice1.somafm.com/defcon-128-mp3"
+            await bot.delete_message(message)
+            await playsong(ctx=ctx, url=url, voice_channel=None)
+        elif react == "soma4":
+            url = "http://ice1.somafm.com/spacestation-128-mp3"
+            await bot.delete_message(message)
+            await playsong(ctx=ctx, url=url, voice_channel=None)
+
+    async def playsong(ctx, url=None, voice_channel: discord.Channel=None):
         """Play an icecast stream."""
         server = ctx.message.server
         author = ctx.message.author
@@ -110,8 +165,12 @@ with open("config.json") as f:
         if voice_channel is None:
             voice_channel = author.voice_channel
         if voice_connected(server):
-            await bot.say(
-                "Already connected to a voice channel, use `r!stop` to stop the radio.")
+            await _disconnect_voice_client(server)
+            Channel = ctx.message.channel
+            await bot.say("Fetching stream...")
+            voice = await bot.join_voice_channel(voice_channel)
+            player = voice.create_ffmpeg_player(url)
+            player.start()
         else:
             Channel = ctx.message.channel
             await bot.say("Fetching stream...")
@@ -227,7 +286,7 @@ with open("config.json") as f:
 
     # @bot.command()
     # async def status(url):
-        # ip = IcyParser()   
+        # ip = IcyParser()
         # ip.getIcyInformation(url)
         # await asyncio.sleep(5)
         # game = ip.icy_streamtitle
