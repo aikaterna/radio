@@ -96,6 +96,7 @@ with open("config.json") as f:
 
     @bot.command(pass_context=True, no_pm=True)
     async def play(ctx, message: discord.Message=None, timeout: int=30):
+        """Choose a stream to play."""
 
         # expected = ["1⃣", "2⃣", "3⃣", "4⃣", "5⃣", "6⃣", "7⃣", "8⃣", "9⃣", "🔟"]
 
