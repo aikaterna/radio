@@ -152,6 +152,8 @@ async def play(ctx, message: discord.Message=None, timeout: int=30):
         url = "http://ice1.somafm.com/spacestation-128-mp3"
         await bot.delete_message(message)
         await playsong(ctx=ctx, url=url, voice_channel=None)
+    global gurl
+    gurl = url
 
 
 async def playsong(ctx, url=None, voice_channel: discord.Channel=None):
@@ -211,17 +213,10 @@ async def stop(ctx):
 async def np(ctx, url=None):
     """Now playing."""
     author = ctx.message.author
-    if url is None:
-        await bot.say('What url?')
-        urlm = await bot.wait_for_message(timeout=30, author=author)
-        if urlm is None:
-            await bot.say("Provide a valid URL next time.")
-            return
-        url = urlm.content
     ip = IcyParser()
     await bot.say("Fetching Song Information...")
     try:
-        ip.getIcyInformation(url)
+        ip.getIcyInformation(gurl)
     except Exception as error:
         bot.say(error)
         return
