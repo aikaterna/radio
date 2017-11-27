@@ -210,7 +210,7 @@ async def stop(ctx):
 
 
 @bot.command(pass_context=True, aliases=["nowplaying", "song"], no_pm=True)
-async def np(ctx, url=None):
+async def np(ctx):
     """Now playing."""
     author = ctx.message.author
     ip = IcyParser()
