@@ -1,3 +1,23 @@
 {
-  "token":""
+    "token" : "BOT TOKEN GOES HERE",
+    "soma1" : {
+            "somaurl" : "http://ice1.somafm.com/groovesalad-128-mp3",
+            "somatitle" : "Groove Salad",
+			"somadesc" : "A nicely chilled plate of ambient, downtempo beats and grooves."
+        },
+    "soma2" : {
+            "somaurl" : "http://ice1.somafm.com/thetrip-128-mp3",
+            "somatitle" : "The Trip",
+			"somadesc" : "Progressive house and trance. Tip top tunes."
+        },
+    "soma3" : {
+            "somaurl" : "http://ice1.somafm.com/defcon-128-mp3",
+            "somatitle" : "DEF CON",
+			"somadesc" : "The DEF CON 25 Channel."
+        },
+    "soma4" : {
+            "somaurl" : "http://ice1.somafm.com/spacestation-128-mp3",
+            "somatitle" : "Spacestation",
+			"somadesc" : "Spaced-out ambient and mid-tempo electronica."
+        }
 }
