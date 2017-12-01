@@ -18,6 +18,7 @@ startup_cogs = (
     'cogs.help',
 )
 
+
 with open("config.json") as f:
     data = json.load(f)
     token = data["token"]
@@ -227,6 +228,45 @@ async def np(ctx):
     await bot.change_presence(game=discord.Game(name=streamtitle, type=2))
     await bot.say("Now Playing: {}".format(streamtitle))
     ip.stop()
+
+@bot.command(pass_context=True, no_pm=True)
+async def playyt(ctx, url=None, voice_channel: discord.Channel=None):
+    """Play a YouTube live stream."""
+    server = ctx.message.server
+    author = ctx.message.author
+    if url is None:
+        await bot.say('What url?')
+        urlm = await bot.wait_for_message(timeout=30, author=author)
+        if urlm is None:
+            await bot.say("Provide a valid URL next time.")
+            return
+        url = urlm.content
+
+    if voice_channel is None:
+        voice_channel = author.voice_channel
+    if voice_connected(server):
+        await _disconnect_voice_client(server)
+        Channel = ctx.message.channel
+        fetch = await bot.say("Fetching stream...")
+        voice = await bot.join_voice_channel(voice_channel)
+        options = '-b:a 64k -bufsize 64k'
+        ytdl_options = {'format': '95'}
+        player = await voice.create_ytdl_player(url, ytdl_options=ytdl_options, options=options)
+        await bot.say("Now Playing: {}".format(player.title))
+        await asyncio.sleep(1)
+        await bot.delete_message(fetch)
+    else:
+        Channel = ctx.message.channel
+        fetch = await bot.say("Fetching stream...")
+        voice = await bot.join_voice_channel(voice_channel)
+        options = '-b:a 64k -bufsize 64k'
+        ytdl_options = {'format': '95'}
+        player = await voice.create_ytdl_player(url, ytdl_options=ytdl_options, options=options)
+        player.start()
+        await bot.say("Now Playing: {}".format(player.title))
+        await asyncio.sleep(1)
+        await bot.delete_message(fetch)
+        # await bot.change_presence(game=discord.Game(name=streamtitle, type=2))
 
 
 @bot.command(pass_context=True, no_pm=True)
