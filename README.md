@@ -1,8 +1,9 @@
 # radio
 
 Reqs:
-discord.py (async)
-icyparser (custom)
+-discord.py (async)
+-icyparser (custom)
+-youtube-dl
 
 Todo:
 
