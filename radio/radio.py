@@ -110,25 +110,39 @@ async def play(ctx, message: discord.Message=None, timeout: int=30):
         # "soma10": "🔟"
     # }
 
+    channel = ctx.message.channel
+    if bot.user.bot:
+        def to_delete(m):
+            if "Now Playing" in m.content:
+                return True
+            else:
+                return False
+        try:
+            await bot.purge_from(channel, limit=50, check=to_delete)
+        except discord.errors.Forbidden:
+            await bot.say("I need permissions to manage messages "
+                                                   "in this channel.")
     await bot.delete_message(ctx.message)
 
     buttons = {
         "soma1": "1⃣",
         "soma2": "2⃣",
         "soma3": "3⃣",
-        "soma4": "4⃣"
+        "soma4": "4⃣",
+        "ytstream1": "5⃣",
+        "ytstream2": "6⃣"
     }
 
-    expected = ["1⃣", "2⃣", "3⃣", "4⃣"]
+    expected = ["1⃣", "2⃣", "3⃣", "4⃣", "5⃣", "6⃣"]
 
     colour = ''.join([choice('0123456789ABCDEF') for x in range(6)])
     embed = discord.Embed(colour=int(colour, 16))
 
-    embed.add_field(name="Radio Stations", value="1. **Groove Salad** - A nicely chilled plate of ambient, downtempo beats and grooves.\n2. **The Trip** - Progressive house and trance. Tip top tunes.\n3. **DEFCON** - The DEF CON 25 Channel.\n4. **Spacestation** - Spaced-out ambient and mid-tempo electronica.", inline=False)
-    embed.set_footer(text="Powered by SomaFM.")
+    embed.add_field(name="Radio Stations", value="1. **Groove Salad** - A nicely chilled plate of ambient, downtempo beats and grooves.\n2. **The Trip** - Progressive house and trance. Tip top tunes.\n3. **DEFCON** - The DEF CON 25 Channel.\n4. **Spacestation** - Spaced-out ambient and mid-tempo electronica.\n5. **Lofi Hip Hop Radio 24/7** - Chill Gaming / Study Beats\n6. Provide your own YouTube Live link.", inline=False)
+    # embed.set_footer(text="Powered by SomaFM.")
 
     message = await bot.send_message(ctx.message.channel, embed=embed)
-    for i in range(4):
+    for i in range(6):
         await bot.add_reaction(message, expected[i])
     react = await bot.wait_for_reaction(message=message, user=ctx.message.author, timeout=timeout, emoji=expected)
     if react is None:
@@ -140,24 +154,32 @@ async def play(ctx, message: discord.Message=None, timeout: int=30):
     if react == "soma1":
         url = "http://ice1.somafm.com/groovesalad-128-mp3"
         await bot.delete_message(message)
-        await playsong(ctx=ctx, url=url, voice_channel=None)
+        await playicecast(ctx=ctx, url=url, voice_channel=None)
     elif react == "soma2":
         url = "http://ice1.somafm.com/thetrip-128-mp3"
         await bot.delete_message(message)
-        await playsong(ctx=ctx, url=url, voice_channel=None)
+        await playicecast(ctx=ctx, url=url, voice_channel=None)
     elif react == "soma3":
         url = "http://ice1.somafm.com/defcon-128-mp3"
         await bot.delete_message(message)
-        await playsong(ctx=ctx, url=url, voice_channel=None)
+        await playicecast(ctx=ctx, url=url, voice_channel=None)
     elif react == "soma4":
         url = "http://ice1.somafm.com/spacestation-128-mp3"
         await bot.delete_message(message)
-        await playsong(ctx=ctx, url=url, voice_channel=None)
+        await playicecast(ctx=ctx, url=url, voice_channel=None)
+    elif react == "ytstream1":
+        url = "https://www.youtube.com/watch?v=AQBh9soLSkI"
+        await bot.delete_message(message)
+        await playytstream(ctx=ctx, url=url, voice_channel=None)
+    elif react == "ytstream2":
+        url = None
+        await bot.delete_message(message)
+        await playytstream(ctx=ctx, url=url, voice_channel=None)
     global gurl
     gurl = url
 
 
-async def playsong(ctx, url=None, voice_channel: discord.Channel=None):
+async def playicecast(ctx, url=None, voice_channel: discord.Channel=None):
     """Play an icecast stream."""
     server = ctx.message.server
     author = ctx.message.author
@@ -201,36 +223,7 @@ async def playsong(ctx, url=None, voice_channel: discord.Channel=None):
     ip.stop()
 
 
-@bot.command(pass_context=True, no_pm=True)
-async def stop(ctx):
-    """Stops playback."""
-    server = ctx.message.server
-    author = ctx.message.author
-    await _disconnect_voice_client(server)
-    await bot.say("Stopping playback...")
-
-
-@bot.command(pass_context=True, aliases=["nowplaying", "song"], no_pm=True)
-async def np(ctx):
-    """Now playing."""
-    author = ctx.message.author
-    ip = IcyParser()
-    await bot.say("Fetching Song Information...")
-    try:
-        ip.getIcyInformation(gurl)
-    except Exception as error:
-        bot.say(error)
-        return
-    await asyncio.sleep(5)
-    streamtitle = ip.icy_streamtitle
-    streamtitle = str(streamtitle).replace(';StreamUrl=', '')
-    streamtitle = str(streamtitle).replace("'", "")
-    await bot.change_presence(game=discord.Game(name=streamtitle, type=2))
-    await bot.say("Now Playing: {}".format(streamtitle))
-    ip.stop()
-
-@bot.command(pass_context=True, no_pm=True)
-async def playyt(ctx, url=None, voice_channel: discord.Channel=None):
+async def playytstream(ctx, url=None, voice_channel: discord.Channel=None):
     """Play a YouTube live stream."""
     server = ctx.message.server
     author = ctx.message.author
@@ -267,6 +260,35 @@ async def playyt(ctx, url=None, voice_channel: discord.Channel=None):
         await asyncio.sleep(1)
         await bot.delete_message(fetch)
         # await bot.change_presence(game=discord.Game(name=streamtitle, type=2))
+
+
+@bot.command(pass_context=True, no_pm=True)
+async def stop(ctx):
+    """Stops playback."""
+    server = ctx.message.server
+    author = ctx.message.author
+    await _disconnect_voice_client(server)
+    await bot.say("Stopping playback...")
+
+
+@bot.command(pass_context=True, aliases=["nowplaying", "song"], no_pm=True)
+async def np(ctx):
+    """Now playing. (Icecast only.)"""
+    author = ctx.message.author
+    ip = IcyParser()
+    await bot.say("Fetching Song Information...")
+    try:
+        ip.getIcyInformation(gurl)
+    except Exception as error:
+        bot.say(error)
+        return
+    await asyncio.sleep(5)
+    streamtitle = ip.icy_streamtitle
+    streamtitle = str(streamtitle).replace(';StreamUrl=', '')
+    streamtitle = str(streamtitle).replace("'", "")
+    await bot.change_presence(game=discord.Game(name=streamtitle, type=2))
+    await bot.say("Now Playing: {}".format(streamtitle))
+    ip.stop()
 
 
 @bot.command(pass_context=True, no_pm=True)
