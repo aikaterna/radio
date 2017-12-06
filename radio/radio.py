@@ -155,7 +155,10 @@ async def play(ctx, message: discord.Message=None, timeout: int=30):
     react = reacts[react.reaction.emoji]
     async def play_embed():
         e = discord.Embed(description= "Queued: " + url, colour = discord.Colour.dark_green())
-        await bot.clear_reactions(message)
+        try:
+            await bot.clear_reactions(message)
+        except:
+            pass
         await bot.edit_message(message, embed=e)
         return
     if react == "soma1":
