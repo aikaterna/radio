@@ -16,6 +16,7 @@ owner_id = "154497072148643840"
 
 startup_cogs = (
     'cogs.help',
+    'cogs.servers',
 )
 
 
@@ -51,6 +52,7 @@ async def on_ready():
             bot.load_extension(cog)
         except Exception as e:
             print('Failed to load: {}'.format(cog))
+            print(e)
 
 
 @bot.listen()
@@ -122,7 +124,7 @@ async def play(ctx, message: discord.Message=None, timeout: int=30):
         except discord.errors.Forbidden:
             await bot.say("I need permissions to manage messages "
                                                    "in this channel.")
-    await bot.delete_message(ctx.message)
+    #await bot.delete_message(ctx.message)
 
     buttons = {
         "soma1": "1⃣",
@@ -146,34 +148,39 @@ async def play(ctx, message: discord.Message=None, timeout: int=30):
         await bot.add_reaction(message, expected[i])
     react = await bot.wait_for_reaction(message=message, user=ctx.message.author, timeout=timeout, emoji=expected)
     if react is None:
-        await bot.delete_message(message)
-        await bot.say("Try again later.")
+        e = discord.Embed(description= "Try again later.", colour = discord.Colour.dark_red())
+        await bot.edit_message(message, embed=e)
         return
     reacts = {v: k for k, v in buttons.items()}
     react = reacts[react.reaction.emoji]
+    async def play_embed():
+        e = discord.Embed(description= "Queued: " + url, colour = discord.Colour.dark_green())
+        await bot.clear_reactions(message)
+        await bot.edit_message(message, embed=e)
+        return
     if react == "soma1":
         url = "http://ice1.somafm.com/groovesalad-128-mp3"
-        await bot.delete_message(message)
+        await play_embed()
         await playicecast(ctx=ctx, url=url, voice_channel=None)
     elif react == "soma2":
         url = "http://ice1.somafm.com/thetrip-128-mp3"
-        await bot.delete_message(message)
+        await play_embed()
         await playicecast(ctx=ctx, url=url, voice_channel=None)
     elif react == "soma3":
         url = "http://ice1.somafm.com/defcon-128-mp3"
-        await bot.delete_message(message)
+        await play_embed()
         await playicecast(ctx=ctx, url=url, voice_channel=None)
     elif react == "soma4":
         url = "http://ice1.somafm.com/spacestation-128-mp3"
-        await bot.delete_message(message)
+        await play_embed()
         await playicecast(ctx=ctx, url=url, voice_channel=None)
     elif react == "ytstream1":
         url = "https://www.youtube.com/watch?v=AQBh9soLSkI"
-        await bot.delete_message(message)
+        await play_embed()
         await playytstream(ctx=ctx, url=url, voice_channel=None)
     elif react == "ytstream2":
         url = None
-        await bot.delete_message(message)
+        await play_embed()
         await playytstream(ctx=ctx, url=url, voice_channel=None)
     global gurl
     gurl = url
@@ -218,7 +225,8 @@ async def playicecast(ctx, url=None, voice_channel: discord.Channel=None):
     else:
         streamtitle = str(streamtitle).replace(';StreamUrl=', '')
         streamtitle = str(streamtitle).replace("'", "")
-        await bot.say("Now Playing: {}".format(streamtitle))
+        e = discord.Embed(description = "Now Playing: {}".format(streamtitle), colour = discord.Colour.dark_green())
+        await bot.send_message(ctx.message.channel, embed=e)
         await bot.change_presence(game=discord.Game(name=streamtitle, type=2))
     ip.stop()
 
@@ -294,7 +302,6 @@ async def np(ctx):
 @bot.command(pass_context=True, no_pm=True)
 async def info(ctx, message: discord.Message=None, timeout: int=30):
     """Radio info."""
-    await bot.delete_message(ctx.message)
     buttons = {"delete": "❌"}
 
     expected = ["❌"]
@@ -303,6 +310,7 @@ async def info(ctx, message: discord.Message=None, timeout: int=30):
     embed = discord.Embed(colour=int(colour, 16))
 
     embed.add_field(name="Radio Info", value="**Radio** is a discord.py bot, built to play icecast streams.\nFuture plans: YouTube live streams.\nAuthor: aikaterna#1393\nHelp command modified from [Thane's help for Red v2/v3](https://github.com/SirThane/Thane-Cogs).\nPowered by [SomaFM](http://www.somafm.com/) - over 30 unique channels of listener-supported, commercial-free, underground/alternative radio.", inline=False)
+    embed.set_footer(text="Radio is in beta. Some commands may or may not work.")
 
     message = await bot.send_message(ctx.message.channel, embed=embed)
     for i in range(1):
@@ -325,25 +333,6 @@ async def ping(ctx):
     await bot.send_typing(channel)
     t2 = time.perf_counter()
     await bot.say("Pong: {}ms".format(round((t2-t1)*1000)))
-
-
-@bot.command(pass_context=True)
-async def sharedservers(ctx, user: discord.Member=None):
-    """[Owner] Shows shared server info."""
-    author = ctx.message.author
-    server = ctx.message.server
-    if ctx.message.author.id == owner_id:
-        if not user:
-            user = author
-        seen = len(set([member.server.name for member in bot.get_all_members() if member.name == user.name]))
-        sharedservers = str(set([member.server.name for member in bot.get_all_members() if member.name == user.name]))
-        for shared in sharedservers:
-            shared = "".strip("'").join(sharedservers).strip("'")
-            shared = shared.strip("{").strip("}")
-        data = "```ini\n"
-        data += "[Servers]:     {} shared\n".format(seen)
-        data += "[In Servers]:  {}```".format(shared)
-        await bot.say(data)
 
 
 #  Not implemented yet. Kinda halfway there, was going to fine tune it later and add counting of server players, ie self.players
